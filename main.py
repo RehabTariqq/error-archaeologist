@@ -129,6 +129,34 @@ def list_cases():
         print(f"Why it worked: {case.get('explanation', '')}")
 
 
+def score_case(case, query_words):
+    """Score a debugging case by the relevance of its matching fields."""
+    fields = [
+        (case.get("error", ""), 5),
+        (case.get("solution", ""), 4),
+        (case.get("category", ""), 3),
+        (" ".join(case.get("tags", [])), 3),
+        (case.get("attempted_fix", ""), 2),
+        (case.get("explanation", ""), 2),
+        (case.get("language", ""), 1),
+    ]
+
+    best_weights = {}
+
+    for text, weight in fields:
+        words = set(re.findall(r"[a-zA-Z0-9_]+", str(text).lower()))
+
+        for word in query_words:
+            if word in words:
+                best_weights[word] = max(
+                    best_weights.get(word, 0),
+                    weight
+                )
+
+    if not query_words:
+        return 0.0
+
+    return sum(best_weights.values()) / (5 * len(query_words))
 def search_cases():
     """Search saved cases using keyword matching."""
     query = input("\nEnter error or keywords to search: ").strip()
@@ -149,24 +177,29 @@ def search_cases():
         print("Try more specific keywords.")
         return
 
+    
     matches = []
 
     for case in load_cases():
-        searchable_text = " ".join([
-            case.get("language", ""),
-            case.get("category", ""),
-            " ".join(case.get("tags", [])),
-            case.get("error", ""),
-            case.get("attempted_fix", ""),
-            case.get("solution", ""),
-            case.get("explanation", ""),
-        ]).lower()
+        score = score_case(case, query_words)
 
-        case_words = set(
-            re.findall(r"[a-zA-Z0-9_]+", searchable_text)
-        )
+        if score > 0:
+            matches.append((score, case))
 
-        score = len(query_words & case_words) / len(query_words)
+    matches.sort(key=lambda item: item[0], reverse=True)
+    matches = []
+
+    for case in load_cases():
+        score = score_case(case, query_words)
+
+        if score > 0:
+            matches.append((score, case))
+
+    matches.sort(key=lambda item: item[0], reverse=True)
+    matches = []
+
+    for case in load_cases():
+        score = score_case(case, query_words)
 
         if score > 0:
             matches.append((score, case))
