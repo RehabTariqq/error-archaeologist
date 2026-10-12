@@ -20,3 +20,14 @@ and retrieves previously solved cases.
 
 ```bash
 python main.py
+## Example workflow
+
+1. Start the program.
+2. Save an error and its working solution.
+3. Search for the error when it appears again.
+4. Review the previously saved solution and explanation.
+
+## Run tests
+
+```bash
+python -m unittest -v
