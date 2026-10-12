@@ -4,13 +4,20 @@ import re
 from datetime import datetime
 from pathlib import Path
 
-# Project storage locations
 DATA_DIR = Path(__file__).parent / "data"
 DATA_FILE = DATA_DIR / "cases.json"
 
+CATEGORIES = [
+    "Syntax",
+    "Runtime",
+    "Compilation",
+    "Logic",
+    "Other",
+]
+
 
 def load_cases():
-    """Load saved debugging cases from the JSON file."""
+    """Load saved debugging cases."""
     if not DATA_FILE.exists():
         return []
 
@@ -25,12 +32,12 @@ def load_cases():
         return cases
 
     except (json.JSONDecodeError, OSError):
-        print("Warning: Could not read the saved cases file.")
+        print("Warning: Could not read saved cases.")
         return []
 
 
 def save_cases(cases):
-    """Save debugging cases to the JSON file."""
+    """Save debugging cases locally."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     with DATA_FILE.open("w", encoding="utf-8") as file:
@@ -38,11 +45,34 @@ def save_cases(cases):
 
 
 def add_case():
-    """Collect and save a new debugging case."""
+    """Collect and save a debugging case."""
     print("\n--- Save a debugging case ---")
 
     language = input("Programming language: ").strip()
     error = input("Error message: ").strip()
+
+    print("\nCategories:")
+    for number, category in enumerate(CATEGORIES, start=1):
+        print(f"{number}. {category}")
+
+    category_choice = input("Choose category (1-5): ").strip()
+
+    if category_choice not in {"1", "2", "3", "4", "5"}:
+        print("Invalid category. Case not saved.")
+        return
+
+    category = CATEGORIES[int(category_choice) - 1]
+
+    tags_input = input(
+        "Tags separated by commas (e.g. arrays, pointers): "
+    ).strip()
+
+    tags = [
+        tag.strip().lower()
+        for tag in tags_input.split(",")
+        if tag.strip()
+    ]
+
     attempted_fix = input("What did you try? ").strip()
     solution = input("What solution worked? ").strip()
     explanation = input("Why did it work? ").strip()
@@ -64,6 +94,8 @@ def add_case():
             timespec="seconds"
         ),
         "language": language,
+        "category": category,
+        "tags": tags,
         "error": error,
         "attempted_fix": attempted_fix,
         "solution": solution,
@@ -77,7 +109,7 @@ def add_case():
 
 
 def list_cases():
-    """Display all saved debugging cases."""
+    """Display all saved cases."""
     cases = load_cases()
 
     if not cases:
@@ -89,6 +121,8 @@ def list_cases():
     for case in cases:
         print(f"\nCase #{case['id']} | {case['language']}")
         print(f"Created: {case.get('created_at', 'Unknown')}")
+        print(f"Category: {case.get('category', 'Other')}")
+        print(f"Tags: {', '.join(case.get('tags', []))}")
         print(f"Error: {case['error']}")
         print(f"Attempted fix: {case.get('attempted_fix', '')}")
         print(f"Solution: {case['solution']}")
@@ -97,7 +131,7 @@ def list_cases():
 
 def search_cases():
     """Search saved cases using keyword matching."""
-    query = input("\nEnter the error or keywords to search: ").strip()
+    query = input("\nEnter error or keywords to search: ").strip()
 
     if not query:
         print("Please enter something to search for.")
@@ -109,19 +143,19 @@ def search_cases():
         "the", "a", "an", "is", "in", "on", "to", "of",
         "and", "or", "for", "with", "my", "i", "it"
     }
-
     query_words -= stop_words
 
     if not query_words:
-        print("Try using more specific error keywords.")
+        print("Try more specific keywords.")
         return
 
-    cases = load_cases()
     matches = []
 
-    for case in cases:
+    for case in load_cases():
         searchable_text = " ".join([
             case.get("language", ""),
+            case.get("category", ""),
+            " ".join(case.get("tags", [])),
             case.get("error", ""),
             case.get("attempted_fix", ""),
             case.get("solution", ""),
@@ -132,8 +166,7 @@ def search_cases():
             re.findall(r"[a-zA-Z0-9_]+", searchable_text)
         )
 
-        matching_words = query_words & case_words
-        score = len(matching_words) / len(query_words)
+        score = len(query_words & case_words) / len(query_words)
 
         if score > 0:
             matches.append((score, case))
@@ -142,7 +175,6 @@ def search_cases():
 
     if not matches:
         print("\nNo matching cases found.")
-        print("Try different keywords or save a case first.")
         return
 
     print(f"\nFound {len(matches)} matching case(s).")
@@ -151,14 +183,15 @@ def search_cases():
         print(f"\n--- Case #{case['id']} ---")
         print(f"Match: {score:.0%}")
         print(f"Language: {case['language']}")
-        print(f"Previous error: {case['error']}")
-        print(f"Attempted fix: {case.get('attempted_fix', '')}")
-        print(f"Working solution: {case['solution']}")
+        print(f"Category: {case.get('category', 'Other')}")
+        print(f"Tags: {', '.join(case.get('tags', []))}")
+        print(f"Error: {case['error']}")
+        print(f"Solution: {case['solution']}")
         print(f"Why it worked: {case.get('explanation', '')}")
 
 
 def main():
-    """Run the Error Archaeologist menu."""
+    """Run the application menu."""
     while True:
         print("\n=== Error Archaeologist ===")
         print("1. Save a debugging case")
@@ -178,7 +211,7 @@ def main():
             print("Goodbye! Keep learning from your bugs.")
             break
         else:
-            print("Invalid choice. Please enter 1, 2, 3, or 4.")
+            print("Invalid choice. Enter 1, 2, 3, or 4.")
 
 
 if __name__ == "__main__":
