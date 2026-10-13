@@ -221,6 +221,38 @@ def search_cases():
         print(f"Error: {case['error']}")
         print(f"Solution: {case['solution']}")
         print(f"Why it worked: {case.get('explanation', '')}")
+        
+def filter_by_language():
+    """Display debugging cases for a selected language."""
+    language = input(
+        "\nEnter programming language to filter by: "
+    ).strip()
+
+    if not language:
+        print("Please enter a programming language.")
+        return
+
+    cases = load_cases()
+
+    matches = [
+        case for case in cases
+        if case.get("language", "").strip().casefold()
+        == language.casefold()
+    ]
+
+    if not matches:
+        print(f"\nNo cases found for {language}.")
+        return
+
+    print(f"\nFound {len(matches)} case(s) for {language}:")
+
+    for case in matches:
+        print(f"\n--- Case #{case['id']} ---")
+        print(f"Language: {case.get('language', 'Unknown')}")
+        print(f"Category: {case.get('category', 'Other')}")
+        print(f"Tags: {', '.join(case.get('tags', []))}")
+        print(f"Error: {case.get('error', '')}")
+        print(f"Solution: {case.get('solution', '')}")
 
 
 def main():
@@ -228,24 +260,26 @@ def main():
     while True:
         print("\n=== Error Archaeologist ===")
         print("1. Save a debugging case")
-        print("2. View saved cases")
-        print("3. Search previous errors")
-        print("4. Exit")
+print("2. View saved cases")
+print("3. Search previous errors")
+print("4. Filter cases by language")
+print("5. Exit")
 
         choice = input("Choose an option (1-4): ").strip()
-
-        if choice == "1":
-            add_case()
-        elif choice == "2":
-            list_cases()
-        elif choice == "3":
-            search_cases()
-        elif choice == "4":
-            print("Goodbye! Keep learning from your bugs.")
-            break
-        else:
-            print("Invalid choice. Enter 1, 2, 3, or 4.")
-
+if choice == "1":
+    add_case()
+elif choice == "2":
+    list_cases()
+elif choice == "3":
+    search_cases()
+elif choice == "4":
+    filter_by_language()
+elif choice == "5":
+    print("Goodbye! Keep learning from your bugs.")
+    break
+else:
+    print("Invalid choice. Enter 1, 2, 3, 4, or 5.")
+      
 
 if __name__ == "__main__":
     main()
