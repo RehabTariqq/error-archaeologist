@@ -1,4 +1,5 @@
 
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -10,7 +11,7 @@ import main
 class ErrorArchaeologistTests(unittest.TestCase):
 
     def setUp(self):
-        """Use temporary storage so tests never modify real saved cases."""
+        """Use temporary storage to protect real debugging cases."""
         self.temp_dir = tempfile.TemporaryDirectory()
 
         self.original_data_dir = main.DATA_DIR
@@ -20,14 +21,14 @@ class ErrorArchaeologistTests(unittest.TestCase):
         main.DATA_FILE = main.DATA_DIR / "cases.json"
 
     def tearDown(self):
-        """Restore the original storage paths after each test."""
+        """Restore original storage paths after every test."""
         main.DATA_DIR = self.original_data_dir
         main.DATA_FILE = self.original_data_file
 
         self.temp_dir.cleanup()
 
     def test_save_and_load_cases(self):
-        """Saved cases should be loaded without changing their contents."""
+        """Saved cases should load with their original contents."""
         cases = [
             {
                 "id": 1,
@@ -42,16 +43,33 @@ class ErrorArchaeologistTests(unittest.TestCase):
         ]
 
         main.save_cases(cases)
-        loaded = main.load_cases()
+
+        self.assertEqual(main.load_cases(), cases)
+
+    def test_missing_file_returns_empty_list(self):
+        """A missing data file should return an empty list."""
+        self.assertEqual(main.load_cases(), [])
+
+    def test_saved_data_is_valid_json(self):
+        """Saved debugging cases should use valid JSON."""
+        cases = [
+            {
+                "id": 1,
+                "language": "Python",
+                "error": "NameError",
+                "solution": "Define the missing variable",
+            }
+        ]
+
+        main.save_cases(cases)
+
+        with main.DATA_FILE.open("r", encoding="utf-8") as file:
+            loaded = json.load(file)
 
         self.assertEqual(loaded, cases)
 
-    def test_missing_file_returns_empty_list(self):
-        """Loading should return an empty list when no file exists."""
-        self.assertEqual(main.load_cases(), [])
-
     def test_error_match_scores_higher_than_explanation(self):
-        """An error-message match should rank above an explanation match."""
+        """Error matches should receive greater search relevance."""
         error_case = {
             "error": "NameError undefined variable",
             "solution": "",
@@ -74,12 +92,10 @@ class ErrorArchaeologistTests(unittest.TestCase):
 
         query_words = {"nameerror"}
 
-        error_score = main.score_case(error_case, query_words)
-        explanation_score = main.score_case(
-            explanation_case, query_words
+        self.assertGreater(
+            main.score_case(error_case, query_words),
+            main.score_case(explanation_case, query_words),
         )
-
-        self.assertGreater(error_score, explanation_score)
 
     @patch("builtins.input", return_value="pYtHoN")
     @patch("builtins.print")
@@ -113,7 +129,7 @@ class ErrorArchaeologistTests(unittest.TestCase):
         self.assertNotIn("Case #2", printed_text)
 
     def test_duplicate_detection_ignores_case_and_extra_spaces(self):
-        """Duplicate detection should ignore case and extra whitespace."""
+        """Duplicate detection should normalize case and whitespace."""
         cases = [
             {
                 "id": 1,
@@ -132,7 +148,7 @@ class ErrorArchaeologistTests(unittest.TestCase):
         self.assertEqual(duplicate["id"], 1)
 
     def test_different_error_is_not_a_duplicate(self):
-        """Different error messages should not count as duplicates."""
+        """Different errors should not be considered duplicates."""
         cases = [
             {
                 "id": 1,
@@ -150,7 +166,7 @@ class ErrorArchaeologistTests(unittest.TestCase):
         self.assertIsNone(duplicate)
 
     def test_same_error_in_different_language_is_not_duplicate(self):
-        """The same error in another language should be allowed."""
+        """Identical errors in different languages are distinct cases."""
         cases = [
             {
                 "id": 1,
@@ -169,4 +185,4 @@ class ErrorArchaeologistTests(unittest.TestCase):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    unittest.main(verbosity=2)
