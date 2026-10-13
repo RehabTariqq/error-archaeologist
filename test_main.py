@@ -114,7 +114,7 @@ def add_case():
 
 
 def list_cases():
-    """Display all saved cases."""
+    """Display all saved debugging cases."""
     cases = load_cases()
 
     if not cases:
@@ -124,8 +124,9 @@ def list_cases():
     print(f"\n--- Saved cases: {len(cases)} ---")
 
     for case in cases:
-        print(f"\nCase #{case.get('id', '?')} | {case.get('language', 'Unknown')}")
+        print(f"\nCase #{case.get('id', '?')}")
         print(f"Created: {case.get('created_at', 'Unknown')}")
+        print(f"Language: {case.get('language', 'Unknown')}")
         print(f"Category: {case.get('category', 'Other')}")
         print(f"Tags: {', '.join(case.get('tags', []))}")
         print(f"Error: {case.get('error', '')}")
@@ -135,7 +136,7 @@ def list_cases():
 
 
 def score_case(case, query_words):
-    """Score a debugging case based on weighted field matches."""
+    """Score a case using weighted keyword matches."""
     fields = [
         (case.get("error", ""), 5),
         (case.get("solution", ""), 4),
@@ -167,7 +168,7 @@ def score_case(case, query_words):
 
 
 def search_cases():
-    """Search saved cases using weighted keyword matching."""
+    """Search cases and rank results by relevance."""
     query = input("\nEnter error or keywords to search: ").strip()
 
     if not query:
@@ -192,10 +193,7 @@ def search_cases():
             matches.append((score, case))
 
     matches.sort(
-        key=lambda item: (
-            item[0],
-            str(item[1].get("id", ""))
-        ),
+        key=lambda item: item[0],
         reverse=True
     )
 
@@ -217,7 +215,7 @@ def search_cases():
 
 
 def filter_by_language():
-    """Display debugging cases for a selected language."""
+    """Display cases for a particular programming language."""
     language = input(
         "\nEnter programming language to filter by: "
     ).strip()
@@ -230,7 +228,7 @@ def filter_by_language():
 
     matches = [
         case for case in cases
-        if case.get("language", "").strip().casefold()
+        if str(case.get("language", "")).strip().casefold()
         == language.casefold()
     ]
 
@@ -242,11 +240,38 @@ def filter_by_language():
 
     for case in matches:
         print(f"\n--- Case #{case.get('id', '?')} ---")
-        print(f"Language: {case.get('language', 'Unknown')}")
         print(f"Category: {case.get('category', 'Other')}")
         print(f"Tags: {', '.join(case.get('tags', []))}")
         print(f"Error: {case.get('error', '')}")
         print(f"Solution: {case.get('solution', '')}")
+
+
+def view_case_by_id():
+    """Display a single case by its ID."""
+    case_id_input = input(
+        "\nEnter the case ID you want to view: "
+    ).strip()
+
+    if not case_id_input.isdigit() or int(case_id_input) < 1:
+        print("Please enter a valid positive case ID.")
+        return
+
+    case_id = int(case_id_input)
+
+    for case in load_cases():
+        if case.get("id") == case_id:
+            print(f"\n--- Case #{case_id} ---")
+            print(f"Created: {case.get('created_at', 'Unknown')}")
+            print(f"Language: {case.get('language', 'Unknown')}")
+            print(f"Category: {case.get('category', 'Other')}")
+            print(f"Tags: {', '.join(case.get('tags', []))}")
+            print(f"Error: {case.get('error', '')}")
+            print(f"Attempted fix: {case.get('attempted_fix', '')}")
+            print(f"Solution: {case.get('solution', '')}")
+            print(f"Why it worked: {case.get('explanation', '')}")
+            return
+
+    print(f"No debugging case found with ID {case_id}.")
 
 
 def main():
@@ -254,12 +279,13 @@ def main():
     while True:
         print("\n=== Error Archaeologist ===")
         print("1. Save a debugging case")
-        print("2. View saved cases")
+        print("2. View all saved cases")
         print("3. Search previous errors")
         print("4. Filter cases by language")
-        print("5. Exit")
+        print("5. View a case by ID")
+        print("6. Exit")
 
-        choice = input("Choose an option (1-5): ").strip()
+        choice = input("Choose an option (1-6): ").strip()
 
         if choice == "1":
             add_case()
@@ -270,10 +296,12 @@ def main():
         elif choice == "4":
             filter_by_language()
         elif choice == "5":
+            view_case_by_id()
+        elif choice == "6":
             print("Goodbye! Keep learning from your bugs.")
             break
         else:
-            print("Invalid choice. Enter 1, 2, 3, 4, or 5.")
+            print("Invalid choice. Enter a number from 1 to 6.")
 
 
 if __name__ == "__main__":
