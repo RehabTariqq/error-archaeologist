@@ -1,5 +1,6 @@
 import contextlib
 import io
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -66,6 +67,33 @@ class CliTests(unittest.TestCase):
         self.assertIn("Case #1", out)
         self.assertIn("Relevance score", out)
 
+    def test_search_clip_single_line(self):
+        self.add_sample()
+        with patch("error_archaeologist.cli.read_clipboard",
+                   return_value="NameError: name 'total' is not defined"):
+            code, out = run(["search", "--clip"], self.store)
+        self.assertEqual(code, 0)
+        self.assertIn("Searching clipboard", out)
+        self.assertIn("Case #1", out)
+
+    def test_search_clip_uses_last_line_of_traceback(self):
+        self.add_sample()
+        traceback_text = ("Traceback (most recent call last):\n"
+                          '  File "a.py", line 3, in <module>\n'
+                          "NameError: name 'y' is not defined")
+        with patch("error_archaeologist.cli.read_clipboard",
+                   return_value=traceback_text):
+            _, out = run(["search", "--clip"], self.store)
+        self.assertIn("Searching clipboard: NameError", out)
+        self.assertIn("Case #1", out)
+
+    def test_search_clip_empty_clipboard(self):
+        self.add_sample()
+        with patch("error_archaeologist.cli.read_clipboard", return_value=""):
+            code, out = run(["search", "--clip"], self.store)
+        self.assertEqual(code, 1)
+        self.assertIn("clipboard is empty", out)
+
     def test_show_missing_case(self):
         code, out = run(["show", "42"], self.store)
         self.assertEqual(code, 1)
@@ -116,13 +144,13 @@ class CliTests(unittest.TestCase):
     def test_run_failing_command_finds_saved_case(self):
         self.store.add("Python", "ZeroDivisionError: division by zero",
                        "check the divisor")
-        code, out = run(["run", "--", "python3", "-c", "1/0"], self.store)
+        code, out = run(["run", "--", sys.executable, "-c", "1/0"], self.store)
         self.assertNotEqual(code, 0)
         self.assertIn("seen something like this", out)
         self.assertIn("check the divisor", out)
 
     def test_run_successful_command(self):
-        code, out = run(["run", "--", "python3", "-c", "print('hi')"], self.store)
+        code, out = run(["run", "--", sys.executable, "-c", "print('hi')"], self.store)
         self.assertEqual(code, 0)
         self.assertIn("without errors", out)
 
