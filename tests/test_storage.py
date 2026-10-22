@@ -1,8 +1,12 @@
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
 
+from unittest.mock import patch
+
+from error_archaeologist import storage
 from error_archaeologist.storage import CaseStore
 
 
@@ -78,6 +82,22 @@ class StorageTests(unittest.TestCase):
         cases = [{"id": 1, "language": "Python", "error": "Undefined variable"}]
         self.assertIsNone(
             self.store.find_duplicate("JavaScript", "Undefined variable", cases))
+
+
+class DataLocationTests(unittest.TestCase):
+    def test_env_variable_overrides_location(self):
+        with patch.dict(os.environ, {"ERROR_ARCHAEOLOGIST_DATA": "/tmp/x/cases.json"}):
+            self.assertEqual(storage.default_data_file(), Path("/tmp/x/cases.json"))
+
+    def test_source_checkout_uses_project_data_folder(self):
+        with patch.dict(os.environ, {}, clear=False):
+            os.environ.pop("ERROR_ARCHAEOLOGIST_DATA", None)
+            path = storage.default_data_file()
+        self.assertEqual(path.name, "cases.json")
+        self.assertEqual(path.parent.name, "data")
+
+    def test_user_data_dir_ends_with_app_name(self):
+        self.assertEqual(storage.user_data_dir().name, "error-archaeologist")
 
 
 if __name__ == "__main__":
