@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.1.1
+
+- `run` and `search --clip` now hide unrelated matches
+- Document PowerShell alias for the `ea` command
+
 ## 1.1.0
 
 - Add `search --clip` to search the error on the clipboard
