@@ -10,6 +10,27 @@ file paths, line numbers and variable names are different.
 
 No dependencies. Python 3.9+ only.
 
+## Try it in 30 seconds
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/RehabTariqq/error-archaeologist)
+
+Click the button and wait about a minute for the terminal to load. It comes with 8 sample cases already saved. Then try:
+
+```bash
+python main.py search "TypeError: Cannot read properties of undefined (reading 'filter')"
+python main.py search "No module named 'flask'"
+python main.py list --language python
+python main.py stats
+```
+
+Or run it on your own computer:
+
+```bash
+git clone https://github.com/RehabTariqq/error-archaeologist.git
+cd error-archaeologist
+python main.py import examples/sample_cases.json
+python main.py search "NameError: name 'x' is not defined"
+```
 ## Features
 
 - Save, view, edit and delete debugging cases (stored in `data/cases.json`)
