@@ -1,5 +1,7 @@
 # Error Archaeologist
 
+![demo](docs/demo.png)
+
 > remember how you fixed it
 
 A local, offline debugging memory. Save an error together with the fix that
