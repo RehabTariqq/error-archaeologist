@@ -3,6 +3,7 @@
 import json
 import os
 import shutil
+import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -10,12 +11,31 @@ from pathlib import Path
 CATEGORIES = ["Syntax", "Runtime", "Compilation", "Logic", "Other"]
 
 
+def user_data_dir():
+    """Per-user folder used when the tool is installed with pip."""
+    if sys.platform.startswith("win"):
+        base = os.environ.get("APPDATA") or str(Path.home() / "AppData" / "Roaming")
+    elif sys.platform == "darwin":
+        base = str(Path.home() / "Library" / "Application Support")
+    else:
+        base = os.environ.get("XDG_DATA_HOME") or str(Path.home() / ".local" / "share")
+    return Path(base) / "error-archaeologist"
+
+
 def default_data_file():
-    """Return the data file path (override with ERROR_ARCHAEOLOGIST_DATA)."""
+    """Pick where cases are stored.
+
+    1. ERROR_ARCHAEOLOGIST_DATA environment variable, if set.
+    2. ./data/cases.json inside a source checkout (pyproject.toml present).
+    3. A per-user data folder (used after `pip install`).
+    """
     override = os.environ.get("ERROR_ARCHAEOLOGIST_DATA")
     if override:
         return Path(override)
-    return Path(__file__).resolve().parent.parent / "data" / "cases.json"
+    project_root = Path(__file__).resolve().parent.parent
+    if (project_root / "pyproject.toml").exists():
+        return project_root / "data" / "cases.json"
+    return user_data_dir() / "cases.json"
 
 
 def now_iso():
