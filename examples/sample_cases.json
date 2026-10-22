@@ -1,0 +1,74 @@
+[
+    {
+        "language": "Python",
+        "error": "NameError: name 'total' is not defined",
+        "attempted_fix": "Checked the spelling of the variable",
+        "solution": "Define the variable before using it, or move the assignment out of the if-block",
+        "explanation": "Python only creates a variable when the assignment runs.",
+        "category": "Runtime",
+        "tags": ["variables", "scope"]
+    },
+    {
+        "language": "Python",
+        "error": "KeyError: 'id'",
+        "attempted_fix": "Printed the dictionary",
+        "solution": "Use data.get('id') or check 'id' in data first",
+        "explanation": "Indexing a missing key raises KeyError; get() returns None instead.",
+        "category": "Runtime",
+        "tags": ["dict", "keys"]
+    },
+    {
+        "language": "Python",
+        "error": "ModuleNotFoundError: No module named 'requests'",
+        "attempted_fix": "Reopened the editor",
+        "solution": "Run pip install requests in the same environment you run the script with",
+        "explanation": "The package was installed for a different Python than the one running the script.",
+        "category": "Runtime",
+        "tags": ["pip", "imports"]
+    },
+    {
+        "language": "Python",
+        "error": "IndentationError: unexpected indent",
+        "attempted_fix": "Re-typed the line",
+        "solution": "Use 4 spaces everywhere and convert tabs to spaces",
+        "explanation": "Mixed tabs and spaces confuse Python's block detection.",
+        "category": "Syntax",
+        "tags": ["formatting"]
+    },
+    {
+        "language": "JavaScript",
+        "error": "TypeError: Cannot read properties of undefined (reading 'map')",
+        "attempted_fix": "Added console.log before the map call",
+        "solution": "Default the array before mapping: (items || []).map(...)",
+        "explanation": "The data had not loaded yet, so items was undefined on first render.",
+        "category": "Runtime",
+        "tags": ["arrays", "async"]
+    },
+    {
+        "language": "JavaScript",
+        "error": "Error: Cannot find module 'express'",
+        "attempted_fix": "Restarted the server",
+        "solution": "Run npm install express in the project folder",
+        "explanation": "The dependency was missing from node_modules.",
+        "category": "Runtime",
+        "tags": ["npm", "node"]
+    },
+    {
+        "language": "C++",
+        "error": "undefined reference to `main'",
+        "attempted_fix": "Rebuilt the project",
+        "solution": "Make sure exactly one source file defines int main() and that it is part of the build",
+        "explanation": "The linker found no entry point.",
+        "category": "Compilation",
+        "tags": ["linker", "build"]
+    },
+    {
+        "language": "Java",
+        "error": "java.lang.NullPointerException: Cannot invoke \"String.length()\" because \"name\" is null",
+        "attempted_fix": "Searched for the line number",
+        "solution": "Check name != null before calling length(), or initialise it with an empty string",
+        "explanation": "A method was called on a reference that was never assigned.",
+        "category": "Runtime",
+        "tags": ["null", "strings"]
+    }
+]
