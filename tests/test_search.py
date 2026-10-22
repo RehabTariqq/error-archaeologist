@@ -53,6 +53,19 @@ class SearchTests(unittest.TestCase):
     def test_limit(self):
         self.assertEqual(len(search(CASES, "undefined", limit=1)), 1)
 
+    def test_strict_drops_unrelated_errors(self):
+        results = search(
+            CASES, "python: can't open file 'x.py': No such file or directory",
+            strict=True)
+        self.assertEqual(results, [])
+
+    def test_strict_keeps_related_error(self):
+        results = search(CASES, "NameError: name 'z' is not defined", strict=True)
+        self.assertEqual(results[0][1]["id"], 1)
+
+    def test_non_strict_is_still_forgiving(self):
+        self.assertTrue(search(CASES, "linkr objct files"))
+
 
 if __name__ == "__main__":
     unittest.main()
