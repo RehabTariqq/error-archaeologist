@@ -149,6 +149,14 @@ class CliTests(unittest.TestCase):
         self.assertIn("seen something like this", out)
         self.assertIn("check the divisor", out)
 
+    def test_run_unrelated_error_does_not_show_false_match(self):
+        self.store.add("Python", "ZeroDivisionError: division by zero", "fix")
+        code, out = run(["run", "--", sys.executable, "no_such_file_xyz.py"],
+                        self.store, inputs=["n"])
+        self.assertNotEqual(code, 0)
+        self.assertNotIn("seen something like this", out)
+        self.assertIn("No similar case saved yet", out)
+
     def test_run_successful_command(self):
         code, out = run(["run", "--", sys.executable, "-c", "print('hi')"], self.store)
         self.assertEqual(code, 0)
