@@ -26,6 +26,15 @@ python main.py            # interactive menu
 python main.py --help     # all commands
 ```
 
+### Install as a command
+
+```bash
+pip install .
+ea --help
+```
+
+After installing, `ea` and `error-archaeologist` work from any folder.
+
 ## Commands
 
 ```bash
@@ -40,7 +49,13 @@ python main.py stats
 python main.py export --format markdown --output cases.md
 python main.py import cases.json
 python main.py run -- python my_script.py
+python main.py search --clip     # search the error you just copied
 ```
+
+### Search the clipboard
+
+Copy an error or a full traceback, then run `python main.py search --clip`.
+For a traceback, the last error line is used.
 
 ### The `run` command
 
@@ -71,7 +86,10 @@ error_archaeologist/
     normalize.py           error normalisation and tokenising
     search.py              ranking
     exporter.py            Markdown/JSON export, import parsing
+    clipboard.py           read the system clipboard
     cli.py                 commands and interactive menu
+docs/shell-integration.md  PowerShell and Bash helpers
+pyproject.toml             packaging (pip install .)
 tests/                     unit tests
 ```
 
@@ -83,5 +101,9 @@ python -m unittest -v
 
 ## Data location
 
-Cases are saved in `data/cases.json` next to the project. Set the
-`ERROR_ARCHAEOLOGIST_DATA` environment variable to use another file.
+- Source checkout: `data/cases.json` next to the project.
+- After `pip install`: your user data folder (`%APPDATA%\error-archaeologist`
+  on Windows, `~/.local/share/error-archaeologist` on Linux/macOS).
+- Override either with the `ERROR_ARCHAEOLOGIST_DATA` environment variable.
+
+See [docs/shell-integration.md](docs/shell-integration.md) for shell helpers.
