@@ -93,8 +93,32 @@ def score_case(case, query_words, doc_freq=None, total_docs=1,
     return round(score, 2)
 
 
-def search(cases, query, language=None, limit=None):
-    """Return [(score, case), ...] sorted best first."""
+def looks_related(case, query_text, query_words, fields=None):
+    """True if the case's *error* plausibly matches the query.
+
+    Used for automatic searches (run / --clip), where a weak match on some
+    unrelated explanation text is worse than showing nothing.
+    """
+    saved_error = case.get("error", "")
+    ratio = difflib.SequenceMatcher(
+        None, error_signature(query_text), error_signature(saved_error)
+    ).ratio()
+    if ratio >= 0.5:
+        return True
+    query_type = extract_error_type(query_text)
+    if query_type and query_type == extract_error_type(saved_error):
+        return True
+    error_words = (fields or case_tokens(case))["error"]
+    if query_words and len(query_words & error_words) / len(query_words) >= 0.5:
+        return True
+    return False
+
+
+def search(cases, query, language=None, limit=None, strict=False):
+    """Return [(score, case), ...] sorted best first.
+
+    strict=True drops cases whose error text does not resemble the query.
+    """
     if language:
         wanted = language.casefold()
         cases = [c for c in cases if str(c.get("language", "")).casefold() == wanted]
@@ -107,6 +131,8 @@ def search(cases, query, language=None, limit=None):
 
     results = []
     for case, fields in zip(cases, per_case):
+        if strict and not looks_related(case, query, words, fields):
+            continue
         value = score_case(case, words, doc_freq, total, fields, query)
         if value > 0:
             results.append((value, case))
