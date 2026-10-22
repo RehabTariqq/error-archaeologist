@@ -131,7 +131,8 @@ def cmd_search(store, query=None, language=None, limit=5, use_clipboard=False):
     if not query:
         print("Please enter at least one search keyword.")
         return 1
-    results = search(cases, query, language=language, limit=limit)
+    results = search(cases, query, language=language, limit=limit,
+                     strict=use_clipboard)
     if not results:
         print("\nNo matching cases found.")
         return 0
@@ -288,7 +289,7 @@ def cmd_run(store, command):
         return process.returncode
     print(f"Detected error: {error_line}")
 
-    results = search(store.load(), error_line, limit=3)
+    results = search(store.load(), error_line, limit=3, strict=True)
     if results:
         print("\nYou have seen something like this before:")
         for score, case in results:
