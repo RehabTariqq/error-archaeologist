@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "error-archaeologist"
+dynamic = ["version"]
+description = "remember how you fixed it: an offline debugging memory"
+readme = "README.md"
+requires-python = ">=3.9"
+authors = [{ name = "Rehab Tariq" }]
+keywords = ["debugging", "cli", "errors", "developer-tools"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Environment :: Console",
+    "Topic :: Software Development :: Debuggers",
+]
+
+[project.urls]
+Homepage = "https://github.com/RehabTariqq/error-archaeologist"
+
+[project.scripts]
+error-archaeologist = "error_archaeologist.cli:main"
+ea = "error_archaeologist.cli:main"
+
+[tool.setuptools]
+packages = ["error_archaeologist"]
+
+[tool.setuptools.dynamic]
+version = { attr = "error_archaeologist.__version__" }
