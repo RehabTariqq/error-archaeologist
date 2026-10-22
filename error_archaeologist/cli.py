@@ -7,6 +7,7 @@ from collections import Counter
 from pathlib import Path
 
 from . import __version__
+from .clipboard import read_clipboard
 from .exporter import parse_import, to_json, to_markdown
 from .normalize import last_error_line
 from .search import search
@@ -114,11 +115,18 @@ def cmd_list(store, language=None, category=None, tag=None):
     return 0
 
 
-def cmd_search(store, query=None, language=None, limit=5):
+def cmd_search(store, query=None, language=None, limit=5, use_clipboard=False):
     cases = store.load()
     if not cases:
         print("\nNo saved cases to search.")
         return 0
+    if use_clipboard:
+        text = read_clipboard()
+        if not text:
+            print("The clipboard is empty or could not be read.")
+            return 1
+        query = last_error_line(text) if "\n" in text else text
+        print(f"\nSearching clipboard: {query}")
     query = query or ask("\nPaste the error or enter keywords: ")
     if not query:
         print("Please enter at least one search keyword.")
@@ -329,7 +337,6 @@ def interactive_menu(store):
 # ---------------------------------------------------------------- parser
 def build_parser():
     parser = argparse.ArgumentParser(
-        prog="main.py",
         description="Error Archaeologist: remember how you fixed it.",
     )
     parser.add_argument("--version", action="version",
@@ -354,6 +361,8 @@ def build_parser():
     p.add_argument("query", nargs="*", help="error text or keywords")
     p.add_argument("--language")
     p.add_argument("--limit", type=int, default=5)
+    p.add_argument("--clip", action="store_true",
+                   help="search the error currently on the clipboard")
 
     p = sub.add_parser("show", help="show one case")
     p.add_argument("id", type=int)
@@ -393,7 +402,7 @@ def main(argv=None, store=None):
         return cmd_list(store, args.language, args.category, args.tag)
     if args.command == "search":
         return cmd_search(store, " ".join(args.query) or None,
-                          args.language, args.limit)
+                          args.language, args.limit, args.clip)
     if args.command == "show":
         return cmd_show(store, args.id)
     if args.command == "edit":
