@@ -3,6 +3,9 @@
     "image": "mcr.microsoft.com/devcontainers/python:3.12",
     "postCreateCommand": "pip install -e . && python main.py import examples/sample_cases.json",
     "customizations": {
+        "codespaces": {
+            "openFiles": ["README.md"]
+        },
         "vscode": {
             "settings": {
                 "terminal.integrated.defaultProfile.linux": "bash"
